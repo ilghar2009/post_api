@@ -12,54 +12,70 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $post = Post::all();
+
+        return response()->json(compact($post), 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+
+        $token = $request->bearerToken();
+
+        $request->validate([
+            'title' => ['required'],
+            'description' => ['required'],
+        ]);
+
+        $post = Post::create([
+            'user_id' => $token->user->user_id,
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        return response()->json($post, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Post $post)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Post $post)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Post $post)
     {
-        //
+        $token = $request->bearerToken();
+
+        $request->validate([
+            'title' => ['sometimes'],
+            'description' => ['sometimes'],
+        ]);
+
+        if($post->user->user_id === $token->user->user_id) {
+
+            $post->update([
+                'title' => $request->title ?? $post->title,
+                'description' => $request->description ?? $post->description,
+            ]);
+
+            return response()->json($post, 201);
+
+        }else
+            return response()->json([
+                'error' => 'you cant change this post',
+            ], 401);
+
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Post $post)
+    public function destroy(Request $request, Post $post)
     {
-        //
+        $token = $request->bearerToken();
+
+        if(!$post->user->user_id === $token->user->user_id)
+            return response()->json([
+               'error' => 'you cant delete this post',
+            ], 401);
+
+        else
+        {
+            $post->delete();
+            return response()->json([
+               'message' => 'successful delete post'
+            ], 201);
+        }
     }
 }
