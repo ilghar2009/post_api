@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\UserToken;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $post = Post::all();
@@ -20,10 +18,12 @@ class PostController extends Controller
     public function store(Request $request)
     {
 
-        $token = $request->bearerToken();
+        $access_token = $request->bearerToken();
+
+        $token = UserToken::where('access_token', $access_token)->first();
 
         $request->validate([
-            'title' => ['required'],
+            'title' => ['required', 'unique:posts,title'],
             'description' => ['required'],
         ]);
 
@@ -33,12 +33,14 @@ class PostController extends Controller
             'description' => $request->description,
         ]);
 
-        return response()->json($post, 201);
+        return response()->json(["data" => $post], 201);
     }
 
     public function update(Request $request, Post $post)
     {
-        $token = $request->bearerToken();
+        $access_token = $request->bearerToken();
+
+        $token = UserToken::where('access_token', $access_token)->first();
 
         $request->validate([
             'title' => ['sometimes'],
@@ -63,7 +65,9 @@ class PostController extends Controller
 
     public function destroy(Request $request, Post $post)
     {
-        $token = $request->bearerToken();
+        $access_token = $request->bearerToken();
+
+        $token = UserToken::where('access_token', $access_token)->first();
 
         if(!$post->user->user_id === $token->user->user_id)
             return response()->json([

@@ -72,7 +72,7 @@ class User extends Authenticatable
         return $this->hasMany(Image::class, 'user_id');
     }
 
-    function usertokens() :HasOne{
+    function usertoken() :HasOne{
         return $this->hasOne(UserToken::class, 'user_id');
     }
 }

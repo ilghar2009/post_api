@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\UserToken;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,14 +17,17 @@ class UserTokenCheck
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->bearerToken();
+        $token_access = $request->bearerToken();
 
-        if(!$token || $token->user->name and $token->expires > Carbon::now()){
+        $token = UserToken::where('access_token', $token_access)->first();
+
+    if(!$token || $token->user->name and $token->expires > Carbon::now()){
             return \response()->json([
                'error' => 'invalid token',
             ], 401);
         }
 
         return $next($request);
+
     }
 }
