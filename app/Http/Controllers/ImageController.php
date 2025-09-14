@@ -56,9 +56,6 @@ class ImageController extends Controller
             return response()->json(['data' => $url, 'size' => $size], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Image $image)
     {
         //

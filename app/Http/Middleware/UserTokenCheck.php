@@ -21,13 +21,17 @@ class UserTokenCheck
 
         $token = UserToken::where('access_token', $token_access)->first();
 
-    if(!$token || $token->user->name and $token->expires > Carbon::now()){
+        if(isset($token)) {
+            if ($token->user?->name ?? 0 and $token->expires > Carbon::now()) {
+                return \response()->json([
+                    'error' => 'invalid token',
+                ], 403);
+            }
+
+            return $next($request);
+        }else
             return \response()->json([
-               'error' => 'invalid token',
+                'error' => 'invalid token',
             ], 403);
-        }
-
-        return $next($request);
-
     }
 }

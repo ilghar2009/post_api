@@ -8,11 +8,22 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $post = Post::all();
 
-        return response()->json(compact($post), 200);
+        //get user_token for get user
+            $access_token = $request->bearerToken();
+            $token = UserToken::where('access_token', $access_token)->first();
+
+        //get user for get him posts
+            $user = $token->user;
+
+        $posts = $user->posts;
+
+        return response()->json([
+            'data' => $posts
+        ], 200);
+
     }
 
     public function store(Request $request)
@@ -49,12 +60,9 @@ class PostController extends Controller
 
         if($post->user->user_id === $token->user->user_id) {
 
-            $post->update([
-                'title' => $request->title ?? $post->title,
-                'description' => $request->description ?? $post->description,
-            ]);
+            $post->update($request->all());
 
-            return response()->json(['data' => $post], 201);
+            return response()->json(['data' => $post->makeHidden('user')], 201);
 
         }else
             return response()->json([
@@ -65,6 +73,7 @@ class PostController extends Controller
 
     public function destroy(Request $request, Post $post)
     {
+
         $access_token = $request->bearerToken();
 
         $token = UserToken::where('access_token', $access_token)->first();
@@ -81,5 +90,6 @@ class PostController extends Controller
                'message' => 'successful delete post'
             ], 204);
         }
+
     }
 }
