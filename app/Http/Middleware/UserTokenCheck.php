@@ -24,7 +24,7 @@ class UserTokenCheck
     if(!$token || $token->user->name and $token->expires > Carbon::now()){
             return \response()->json([
                'error' => 'invalid token',
-            ], 401);
+            ], 403);
         }
 
         return $next($request);
