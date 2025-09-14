@@ -43,7 +43,7 @@ class PostController extends Controller
         $token = UserToken::where('access_token', $access_token)->first();
 
         $request->validate([
-            'title' => ['sometimes'],
+            'title' => ['sometimes', 'unique:posts,title'],
             'description' => ['sometimes'],
         ]);
 
@@ -54,12 +54,12 @@ class PostController extends Controller
                 'description' => $request->description ?? $post->description,
             ]);
 
-            return response()->json($post, 201);
+            return response()->json(['data' => $post], 201);
 
         }else
             return response()->json([
                 'error' => 'you cant change this post',
-            ], 401);
+            ], 403);
 
     }
 
@@ -72,14 +72,14 @@ class PostController extends Controller
         if(!$post->user->user_id === $token->user->user_id)
             return response()->json([
                'error' => 'you cant delete this post',
-            ], 401);
+            ], 403);
 
         else
         {
             $post->delete();
             return response()->json([
                'message' => 'successful delete post'
-            ], 201);
+            ], 204);
         }
     }
 }
